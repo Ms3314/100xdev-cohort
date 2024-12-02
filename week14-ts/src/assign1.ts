@@ -8,10 +8,12 @@ type Admin = {
     admincode : number 
 }
 
-type AdminorUser = Admin | Person
+type AdminorUser = Admin | Person // this is like an intersection for both Admin and a personn
 
 function MoodAnalyser (x : AdminorUser) {
-    return `Hello ${x.age}`
+    if (x.age != undefined) {
+        return `Hello ${x.age}`
+    }
 }
 
 
