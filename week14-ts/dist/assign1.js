@@ -1,4 +1,6 @@
 "use strict";
 function MoodAnalyser(x) {
-    return `Hello ${x.age}`;
+    if (x.age != undefined) {
+        return `Hello ${x.age}`;
+    }
 }
