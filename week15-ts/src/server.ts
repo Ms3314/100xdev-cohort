@@ -92,6 +92,10 @@ app.post('/api/v1/login' ,(req , res)=>{
 
 })
 
+app.post("/donothing" , (req, res)=>{
+    console.log("yess ")
+})
+
 app.listen(PORT , () =>{
     console.log(`Server is running on PORT ${PORT}`)
 } )
