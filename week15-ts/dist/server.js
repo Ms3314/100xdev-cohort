@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const userSchema_1 = __importDefault(require("./models/userSchema"));
+const contentSchema_1 = __importDefault(require("./models/contentSchema"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -80,6 +81,7 @@ app.post('/api/v1/login', (req, res) => __awaiter(void 0, void 0, void 0, functi
             console.log(resp);
             if (resp === true) {
                 var token = jsonwebtoken_1.default.sign({ username: username }, 'shhhhh');
+                res.cookie(token.toString(), "sami");
                 return res.status(Statuscode.Signedup).json(token);
             }
             else {
@@ -93,11 +95,26 @@ app.post('/api/v1/login', (req, res) => __awaiter(void 0, void 0, void 0, functi
         return res.status(Statuscode.Errorininputs).json("account does not exist make a new account ");
     }
 }));
-app.post('/api/v1/content', auth_1.Autheticated, (req, res) => {
+app.post('/api/v1/content', auth_1.Autheticated, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { type, link, title, tags } = req.body;
     let user = req.user;
-    console.log(user, "in the real root");
-});
+    console.log(tags, "these are the tags ");
+    console.log(user);
+    // bhai yaha problem ye hai ki tags bhi aak tarah ka refrence hai ak nai tags ka schema banake usko link karna hai toh isliye tabtak ke liye isko rook dena hai 
+    const declareduser = yield userSchema_1.default.findOne({ username: user.username });
+    console.log(declareduser, "found the user");
+    // console.log(user , "in the real root")
+    const Contentdata = new contentSchema_1.default({
+        link,
+        title,
+        type,
+        tags,
+        //here is the only problem this thing accepts objectId as its input
+        userId: declareduser._id
+    });
+    const savedContent = yield contentSchema_1.default.create(Contentdata);
+    res.status(200).json(savedContent);
+}));
 app.get("/donothing", auth_1.Autheticated, (req, res) => {
     console.log("yess ");
 });

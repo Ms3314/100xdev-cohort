@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
 import { Autheticated } from "./middlewares/auth";
 import cookieParser from 'cookie-parser';
+import Content from "./models/contentSchema";
 
 
 mongoose.connect("mongodb://localhost:27017/SecondBrain")
@@ -84,6 +85,7 @@ app.post('/api/v1/login' ,async (req , res) => {
                 console.log(resp)
                 if (resp === true){
                     var token = jwt.sign({ username: username }, 'shhhhh');
+                    res.cookie(token.toString() , "sami");
                     return res.status(Statuscode.Signedup).json(token)
                 }
                 else {
@@ -99,10 +101,27 @@ app.post('/api/v1/login' ,async (req , res) => {
 
 })
 
-app.post('/api/v1/content' , Autheticated ,  (req , res) => {
+
+
+app.post('/api/v1/content' , Autheticated , async (req , res) => {
     let { type , link , title , tags  } = req.body
-    let user = req.user ;
-    console.log(user , "in the real root")
+    let user:any = req.user ;
+    console.log(tags , "these are the tags ")
+    console.log(user)
+    // bhai yaha problem ye hai ki tags bhi aak tarah ka refrence hai ak nai tags ka schema banake usko link karna hai toh isliye tabtak ke liye isko rook dena hai 
+    const declareduser:Usercred =await User.findOne({username : user.username});
+    console.log(declareduser , "found the user")
+    // console.log(user , "in the real root")
+    const Contentdata = new Content({
+        link ,
+        title ,
+        type ,
+        tags ,
+        //here is the only problem this thing accepts objectId as its input
+        userId : declareduser._id
+    })
+    const savedContent = await Content.create(Contentdata)
+    res.status(200).json(savedContent)
 })
 
 
