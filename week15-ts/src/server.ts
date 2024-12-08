@@ -3,6 +3,7 @@ import User from "./models/userSchema"
 import bcrypt from 'bcryptjs';
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
+import { Autheticated } from "./middlewares/auth";
 
 mongoose.connect("mongodb://localhost:27017/SecondBrain")
 
@@ -15,9 +16,9 @@ enum Statuscode {
     Errorininputs =  411 ,
     Useralready = 403 ,
     Servererror = 500 ,
+    credentialsInvalid = 444,
 }
 app.use(express.json());
-
 
 
 app.get("/" , (req , res) =>{
@@ -29,27 +30,23 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(.{8,})$/;
 
 type Usercred = {
     username : string ,
-    email?: string,
     Password : string
 }
 
-app.post('/api/v1/signup' , (req , res)=> {
+app.post('/api/v1/signup' ,async (req , res)=> {
     let {username , password} = req.body
+    console.log(req.body.username)
     const pass = "B4c0/\/"
-    if(!usernameRegex.test(username))
-        {
-            return res.status(Statuscode.Errorininputs).json("username should be 3-10 letters")
-        }
     if(!passwordRegex.test(password))
         {
             return res.status(Statuscode.Errorininputs).json("Think of a better password , this one is too ease")        
         }
     
-    var bcrypt = require('bcryptjs');
-    bcrypt.genSalt(10 , function(err:any, salt:any) {
+    bcrypt.genSalt(10 ,async  function(err:any, salt:any) {
         bcrypt.hash(pass, salt, async function(err:any, hash:string) {
             // Store hash in your password DB.
-            let foundemail:Usercred = User.findOne({
+            console.log(hash , "hash kya mila")
+            let foundemail:Usercred =await User.findOne({
                 username 
             })
             if(foundemail){
@@ -61,38 +58,54 @@ app.post('/api/v1/signup' , (req , res)=> {
             })
             const saved = await User.create(data)
             var token = jwt.sign({ username: username }, 'shhhhh');
+            res.cookie(token , "sami");
             return res.status(Statuscode.Signedup).json(token)
         });
     });
 
+    // var salt = bcrypt.genSaltSync(10);
+    // var hash = bcrypt.hashSync("B4c0/\/", salt);
+
+
     
     
     
 })
-app.post('/api/v1/login' ,(req , res)=>{
+
+
+
+app.post('/api/v1/login' ,async (req , res) => {
     let {username , password} = req.body;
-    let foundemail:Usercred = User.findOne({
-        username 
+    let foundemail:any = await User.findOne({
+        username : username
     })
+    // console.log(foundemail._id , "this is the ID ")
     if(foundemail)
         {
-            bcrypt.compare("B4c0/\/", foundemail.Password, function(err, resp) {
-                if (resp == password){
+            bcrypt.compare("B4c0/\/", password, function(err, resp) {
+                console.log(foundemail.Password)
+                console.log(resp , 'the res')
+                console.log(password , 'password')
+                if (resp === true){
                     var token = jwt.sign({ username: username }, 'shhhhh');
                     return res.status(Statuscode.Signedup).json(token)
                 }
                 else {
-                    return res.status(Statuscode.Errorininputs).json(token)
+                    return res.status(Statuscode.Errorininputs).json({
+                        "msg" : "invalid credentials"
+                    })
                 }
             });
         }
     else {
-        return res.status(Statuscode.Errorininputs).json("invalid credetials")
+        return res.status(Statuscode.Errorininputs).json("account does not exist make a new account ")
     }
 
 })
 
-app.post("/donothing" , (req, res)=>{
+
+
+app.get("/donothing" , Autheticated , (req, res)=>{
     console.log("yess ")
 })
 
