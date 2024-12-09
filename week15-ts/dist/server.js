@@ -20,6 +20,9 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const auth_1 = require("./middlewares/auth");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const tagsSchema_1 = require("./models/tagsSchema");
+const crypto_1 = require("crypto");
+const linkSchema_1 = require("./models/linkSchema");
 mongoose_1.default.connect("mongodb://localhost:27017/SecondBrain");
 const app = (0, express_1.default)();
 const PORT = 3000;
@@ -41,9 +44,10 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(.{8,})$/;
 app.post('/api/v1/signup', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { username, password } = req.body;
     console.log(req.body.username);
-    if (!passwordRegex.test(password)) {
-        return res.status(Statuscode.Errorininputs).json("Think of a better password , this one is too ease");
-    }
+    // if(!passwordRegex.test(password))
+    //     {
+    //         return res.status(Statuscode.Errorininputs).json("Think of a better password , this one is too ease")        
+    //     }
     bcryptjs_1.default.genSalt(10, function (err, salt) {
         return __awaiter(this, void 0, void 0, function* () {
             bcryptjs_1.default.hash(password, salt, function (err, hash) {
@@ -95,11 +99,29 @@ app.post('/api/v1/login', (req, res) => __awaiter(void 0, void 0, void 0, functi
         return res.status(Statuscode.Errorininputs).json("account does not exist make a new account ");
     }
 }));
+// this route will add u the content 
 app.post('/api/v1/content', auth_1.Autheticated, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let { type, link, title, tags } = req.body;
+    let tagarr = [];
     let user = req.user;
-    console.log(tags, "these are the tags ");
-    console.log(user);
+    let i = 0;
+    tags.map((tag) => __awaiter(void 0, void 0, void 0, function* () {
+        let tagObtained = yield tagsSchema_1.Tags.findOne({ title: tag });
+        if (tagObtained) {
+            // console.log(tagObtained)
+            tagarr.push(tagObtained._id);
+            //console.log("Tag previously existed now added into the db")
+        }
+        else {
+            const Tagss = new tagsSchema_1.Tags({
+                title: tag
+            });
+            const Tagsfinal = yield tagsSchema_1.Tags.create(Tagss);
+            // console.log(Tagsfinal , "this ones do not exist we are meking them ")
+            tagarr.push(Tagsfinal._id);
+            // console.log("Tag didnt exist now has been created")
+        }
+    }));
     // bhai yaha problem ye hai ki tags bhi aak tarah ka refrence hai ak nai tags ka schema banake usko link karna hai toh isliye tabtak ke liye isko rook dena hai 
     const declareduser = yield userSchema_1.default.findOne({ username: user.username });
     console.log(declareduser, "found the user");
@@ -108,12 +130,85 @@ app.post('/api/v1/content', auth_1.Autheticated, (req, res) => __awaiter(void 0,
         link,
         title,
         type,
-        tags,
+        tags: tagarr,
         //here is the only problem this thing accepts objectId as its input
         userId: declareduser._id
     });
     const savedContent = yield contentSchema_1.default.create(Contentdata);
     res.status(200).json(savedContent);
+}));
+//enabling of an sharable link , only the authenticated perosn can enable this thing 
+app.post("/api/v1/brain/share", auth_1.Autheticated, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let { share } = req.body;
+    if (share === true) {
+        // we get the username of the user now 
+        let user = req.user;
+        console.log(user, "user mil gaya");
+        let Userfound = yield userSchema_1.default.findOne({ username: user.username });
+        if (Userfound) {
+            let LinkExists = yield linkSchema_1.Link.findOne({ userId: Userfound._id });
+            if (LinkExists) {
+                res.status(200).json({
+                    "msg": "Link already exists",
+                    "link": `localhost:3000/api/v1/brain/${LinkExists.hash}`
+                });
+            }
+            else {
+                const hash = (0, crypto_1.createHash)('sha256').update(user.username).digest('base64');
+                const newLink = new linkSchema_1.Link({
+                    hash,
+                    userId: Userfound._id
+                });
+                yield linkSchema_1.Link.create(newLink);
+                res.status(200).json({
+                    "link": `localhost:3000/api/v1/brain/${hash}`
+                });
+            }
+        }
+    }
+}));
+// this is like the sharable link for the second brain of a particular user
+app.get("/api/v1/brain/:link", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const linkhere = req.params.link;
+    let linkExists = yield linkSchema_1.Link.findOne({ hash: linkhere });
+    // initializing the content we are gonna add int eh fina content 
+    let contentarr = [];
+    // console.log(linkhere)
+    // console.log(linkExists , "the link exists in the DB ")
+    if (linkExists) {
+        let Userfound = yield userSchema_1.default.findById(linkExists.userId);
+        if (Userfound) {
+            // finding all the content of a specific user 
+            let Contentfound = yield contentSchema_1.default.find({ userId: Userfound._id }).populate({ path: "tags", select: ["title"] });
+            Contentfound.map((item, index) => {
+                let tagsarr = [];
+                // console.log(item.tags)
+                item.tags.map((x) => tagsarr.push(x.title));
+                // [] here we are cooking the contents array by looping each of the content 
+                let contents = {
+                    "id": index + 1,
+                    "type": item.type,
+                    "link": item.link,
+                    "title": item.title,
+                    "tags": tagsarr,
+                };
+                contentarr.push(contents);
+                // then we pushing each of the content here cuz we using content of one user only
+            });
+            // this our final object which we send to the client 
+            let Contentfinal = {
+                "username": Userfound.username,
+                "contents": contentarr
+            };
+            res.status(200).json(Contentfinal);
+        }
+        else {
+            res.status(444).json({ "err": "1 Some link problem " });
+        }
+    }
+    else {
+        res.status(444).json({ "err": "2 Some link problem " });
+    }
 }));
 app.get("/donothing", auth_1.Autheticated, (req, res) => {
     console.log("yess ");

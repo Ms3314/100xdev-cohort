@@ -57,7 +57,7 @@ const contentSchema = new mongoose_1.default.Schema({
     },
     tags: [{
             type: mongoose_1.Types.ObjectId,
-            ref: 'Tag',
+            ref: 'Tags',
         }],
     userId: {
         type: mongoose_1.Types.ObjectId,

@@ -22,7 +22,7 @@ const contentSchema = new mongoose.Schema({
     },
     tags : [{
         type : Types.ObjectId ,
-        ref : 'Tag', 
+        ref : 'Tags', 
     }],
     userId : {
         type : Types.ObjectId,
