@@ -6,7 +6,6 @@ import mongoose, { Types } from "mongoose";
 import jwt from "jsonwebtoken"
 import { Autheticated } from "./middlewares/auth";
 import cookieParser from 'cookie-parser';
-import Content from "./models/contentSchema";
 import { Tags } from "./models/tagsSchema";
 import crypto , {createHash} from "crypto"
 import { Link } from "./models/linkSchema";
