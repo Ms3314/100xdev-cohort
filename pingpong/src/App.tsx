@@ -1,7 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css'
 
+const message = [
+  {
+    self : false ,
+    message : 'Welcome to the pingpong chat room',
+    user : "Ping pong community"
+  },
+  {
+    self : true ,
+    message : 'Welcome to the pingpong chat room',
+    user : "Ping pong community"
+  },
+
+]
+
+
+
 function App() {
+  const [ ars , setars ] = useState(message);
   const [socket , setSocket]= useState();
   const inputRef = useRef();
 
@@ -9,17 +26,36 @@ function App() {
     if (!socket) {
       return
     }
-    const messsage = inputRef.current.value
+    const messsage1 = inputRef.current.value
     //@ts-expect-error idk why is this doing this
-    socket.send(messsage);
+    console.log(messsage1 , "this is the message we got")
+    const selfmessage = {
+      self : true ,
+      message : messsage1 ,
+      user : "Samiuddin"
+    }
+    socket.send(JSON.stringify(selfmessage));
+    console.log("this is what I am sending " , JSON.stringify(selfmessage));
+    // inputRef.current.value = ""
+    // console.log(ars)
   }
 
   useEffect(()=>{
     const ws = new WebSocket("ws://localhost:8000");
     setSocket(ws)
     ws.onmessage = (ev) =>{
-        alert(ev.data)
-    }
+      // alert("aja bhai");
+        // console.log((JSON.parse(ev.data)) , "coming from ws")
+        console.log(ev.data , "is this is a json string ?? ")
+        const parsed = JSON.parse(ev.data)
+        // const messobj = {
+        //   self : false,
+        //   message : datas , 
+        //   user : "others" 
+        // }
+        // setars((pre) => [...pre , messobj])
+        setars((pre) => [...pre , parsed])
+      }
   },[])
 
   return (
@@ -27,8 +63,22 @@ function App() {
       <div>
         Hi there 
       </div>
-      <input ref={inputRef} type='text' id='ping' placeholder='your messsage here ..'  ></input>
+      <div className='mb-10 p-10 flex flex-col gap-10 w-96 bg-gray-500'>
+          {
+            ars.map((x , index)=>{
+              return (
+                <div key={index} className= {`rounded-xl p-5 w-[200px] flex flex-col  ${x.self === true ? " bg-green-900  " : "bg-blue-900 ml-32 " } align-middle0`} >
+                    <p className='text-[10px] mr-10 mb-5'>{x.user}</p>
+                    <p className='self-start text-[15px]'>{x.message}</p>
+                </div>
+              )
+            })
+          }
+      </div>
+      <div>
+      <input ref={inputRef} type='text' id='ping' placeholder='your messsage here ..' className='p-3 mr-10 rounded-lg' ></input>
       <button onClick={handleMessage} >Send</button>
+      </div>
     </>
   )
 }
