@@ -11,6 +11,7 @@ type websocket = {
 let allSockets:websocket[] = [];
 let socketobjreturnee = {}
 wss.on("connection" , (socket) => {
+    wss.on('error',console.error)
     socket.send("Socket connected")
     // console.log("User connected #" + userCount)
     socket.on("message" , (message) => {
