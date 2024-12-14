@@ -1,6 +1,6 @@
 import './index.css'
 import './App.css'
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 
 function App() {
@@ -17,11 +17,12 @@ function App() {
     )
   } else {
     return (
-      <Chatroom />
+      <Chatroom info={info} />
     )
   }
 }
 
+// here is where I ask the thing about his information !!
 function Nameroom({setinfo}) {
   const nameref = useRef<HTMLInputElement | null>(null)
   const roomref = useRef<HTMLInputElement | null>(null)
@@ -84,10 +85,104 @@ function Nameroom({setinfo}) {
   )
 }
 
-function Chatroom() {
+// this is the chat room 
+function Chatroom({info}) {
+  // let messagestore: { message: any; name: any; me: boolean; }[] = []
+  const [messagestore , setmessagestore] = useState([])
+  const [socket , setsocket] = useState<WebSocket>(null)
+  let msgref = useRef(null)
+  useEffect(()=>{
+    const newsocket = new WebSocket("ws://localhost:8080")
+    setsocket(newsocket)
+    // when the web socket will be open the below thing will work 
+    newsocket.onopen = () => {
+      console.log("Connection established");
+      const message = {
+        type : "enter" ,
+        payload : {
+          room : info.room,
+          name : info.name ,
+        }
+      }
+      newsocket.send(JSON.stringify(message))
+    }
+    // when I get some output from the user
+    newsocket.onmessage= (msg) => {
+      console.log( msg.data , "A message is recieved");
+      console.log( msg.data , "/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////");
+      let data = JSON.parse(msg.data)
+      if(data) {
+      const messsg = {
+        message : data.message ,
+        name : data.name,
+        me : false 
+      }
+        setmessagestore((prev)=> [...prev , messsg])
+      
+    }
+    }
+    console.log(messagestore)
+  },[])
+
+  function handleSend () {
+    const messagetosend = msgref.current?.value ;
+    console.log(messagetosend , "this is the message " ) 
+    const message = {
+      type : "send" ,
+      payload : {
+        message : messagetosend,
+        room : info.room,
+        name : info.name 
+      }
+    }
+
+    //pushing this to the message object 
+    const messsg = {
+      "message" : messagetosend ,
+      "name" : info.name,
+      "me" : true 
+    }
+    setmessagestore((mes) => [...mes , messsg])
+    console.log( "wha do u gaaaadgkfsdgfdhkfdhkfsdhgfsdkfjk" ,  messagestore)
+    socket.send(JSON.stringify(message))
+  }  
+
   return (
-    <p className='text-white'>HELLOOOO PEOPLEE !!</p>
+    <div className='text-white'>
+    <p className=' bg-blue-400 rounded-md p-3 text-black font-mono'>WELCOME TO FAST CHAT ROOM #{info.room}  !!</p>
+    <div className='flex flex-col justify-end border-2 w-[500px] m-10 rounded-lg'>
+
+        {
+          messagestore.map((x , index)=>{
+            if(x.message !== undefined){
+            return (
+              <MessageCompnonet key={index} data={x}  />
+            )
+          }
+          })
+        }
+      <div className=' border-2 p-5 p '>
+        <input type="text" ref={msgref} placeholder='Message..' className='p-2 border-2  w-80%'/>
+        <button onClick={handleSend} className='ml-2 '>Send</button>
+      </div>
+    </div>
+    </div>
   )
 }
 
+// this is the induvidual message component
+function MessageCompnonet({data}) {
+  console.log("sddddddddsdsds")
+  console.log(data , "data in the messagecompoenent")
+  // console.log(data , "data in the messagecompoenent")
+  return(
+    <div className={`w-[200px] border-2 p-5 m-5 text-left rounded-lg shadow-md ${data.me === false ? ' ml-[280px] ' : "" } `}>
+      <p className="text-sm font-semibold text-gray-200">{data.name}</p>
+      <h3 className="text-sm text-gray-300 mt-2">
+        {data.message}
+      </h3>
+    </div>
+
+  )
+}
 export default App
