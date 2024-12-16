@@ -13,11 +13,17 @@ function App() {
 
   if(info.name == "") {
     return (
+      <>
+      <h1 className='text-black '>CHAT FAST</h1>
       <Nameroom setinfo={setinfo} />
+      </>
     )
   } else {
     return (
+      <>
+      <h1 className='text-black '>CHAT FAST</h1>
       <Chatroom info={info} />
+      </>
     )
   }
 }
@@ -64,24 +70,24 @@ function Nameroom({setinfo}) {
   }
  
   return (
-    <>
-        <form onSubmit={handleSubmit} className='text-white flex flex-col gap-4'>
-          <div className='flex flex-row gap-3'>
+    <div className='p-5 rounded-xl align-middle justify-center flex flex-col bg-gray-600 w-[500px] h-full ' >
+        <form onSubmit={handleSubmit} className='text-white  flex flex-col gap-4'>
+          <div className='flex  flex-row gap-3 '>
             <p>
               Name :
             </p>
-            <input id='name'  ref={nameref} type="text" name="name"   className='border-2 ' />
+            <input id='name'  ref={nameref} type="text" name="name"   className='rounded-sm border-2 ' />
           </div>
           <div className='flex flex-row gap-3'>
             <p>
               Room : 
             </p>
-            <input  ref={roomref} id='room' type="text" name="room"   className='border-2 '  />
+            <input  ref={roomref} id='room' type="text" name="room"   className='rounded-sm border-2 '  />
           </div>
-          <button ref={buttonref} className='text-sm  ml-20 p-2 bg-white text-black rounded-xl'>Join Room</button>
+          <button ref={buttonref} className='ml-20 text-sm w-32  p-2 bg-white text-black rounded-xl'>Join Room</button>
         </form>
-        <button ref={descref} onClick={handlemake} className='text-white' id='chat' >Dont have a room , make one  ??</button>
-    </>
+        <button ref={descref} onClick={handlemake} className='text-white mt-3 mr-32' id='chat' >Dont have a room , make one  ??</button>
+    </div>
   )
 }
 
