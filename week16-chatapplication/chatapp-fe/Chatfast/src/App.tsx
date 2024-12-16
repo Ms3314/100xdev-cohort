@@ -13,10 +13,10 @@ function App() {
 
   if(info.name == "") {
     return (
-      <>
-      <h1 className='text-black '>CHAT FAST</h1>
+      <div className='flex flex-row gap-[400px] '>
+      <h1 className='text-[60px] text-black '>CHAT FAST <br></br> <span className='text-sm'>chat with your friends and family for free with just a code </span></h1>
       <Nameroom setinfo={setinfo} />
-      </>
+      </div>
     )
   } else {
     return (
@@ -70,7 +70,7 @@ function Nameroom({setinfo}) {
   }
  
   return (
-    <div className='p-5 rounded-xl align-middle justify-center flex flex-col bg-gray-600 w-[500px] h-full ' >
+    <div className='p-5 rounded-xl w-[350px] flex flex-col bg-gray-600 ' >
         <form onSubmit={handleSubmit} className='text-white  flex flex-col gap-4'>
           <div className='flex  flex-row gap-3 '>
             <p>
@@ -86,7 +86,7 @@ function Nameroom({setinfo}) {
           </div>
           <button ref={buttonref} className='ml-20 text-sm w-32  p-2 bg-white text-black rounded-xl'>Join Room</button>
         </form>
-        <button ref={descref} onClick={handlemake} className='text-white mt-3 mr-32' id='chat' >Dont have a room , make one  ??</button>
+        <button ref={descref} onClick={handlemake} className='text-white mt-3 ' id='chat' >Dont have a room , make one  ??</button>
     </div>
   )
 }
