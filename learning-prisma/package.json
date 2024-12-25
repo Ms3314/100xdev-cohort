@@ -1,5 +1,5 @@
 {
-  "name": "week17-postgress",
+  "name": "learning-prisma",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -10,10 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@types/express": "^5.0.0",
-    "@types/pg": "^8.11.10",
-    "express": "^4.21.2",
-    "pg": "^8.13.1",
-    "typescript": "^5.7.2"
+    "@prisma/client": "^6.1.0",
+    "prisma": "^6.1.0"
   }
 }
