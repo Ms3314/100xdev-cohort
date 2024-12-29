@@ -3,9 +3,9 @@
   "ui": "tui",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "dependsOn": ["^build"], // first the dependecy will be build then the others will be buiild 
+      "inputs": ["$TURBO_DEFAULT$", ".env*"], // global nev or the main thing changes then build this thing 
+      "outputs": [".next/**", "!.next/cache/**" , "dist"] 
     },
     "lint": {
       "dependsOn": ["^lint"]
