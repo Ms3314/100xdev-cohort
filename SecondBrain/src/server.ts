@@ -74,7 +74,7 @@ app.post('/api/v1/signup' ,async (req , res)=> {
 
 
 
-app.post('/api/v1/login' ,async (req , res) => {
+app.post('/api/v1/login' , async (req , res) => {
     let {username , password} = req.body;
     let foundemail:any = await User.findOne({
         username : username
